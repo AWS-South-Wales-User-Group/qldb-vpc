@@ -1,0 +1,27 @@
+{
+  "name": "qldb-vpc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sls": "serverless"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@dazn/lambda-powertools-logger": "^1.28.1",
+    "@middy/core": "^1.5.2",
+    "@middy/http-cors": "^1.5.2",
+    "amazon-qldb-driver-nodejs": "^2.1.1",
+    "cfn-response-promise": "^1.1.0",
+    "ion-js": "^4.1.0",
+    "jsbi": "^3.1.4"
+  },
+  "devDependencies": {
+    "serverless": "^2.28.3",
+    "serverless-cloudformation-sub-variables": "^0.2.1",
+    "serverless-iam-roles-per-function": "^3.1.0",
+    "serverless-pseudo-parameters": "^2.5.0"
+  }
+}

@@ -1,0 +1,156 @@
+service: qldb-vpc
+
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  memorySize: 512
+  stage: ${opt:stage, 'dev'}
+  region: eu-west-1
+  stackName: ${self:service}
+  tracing:
+    apiGateway: true
+    lambda: true # Optional, can be true (true equals 'Active'), 'Active' or 'PassThrough'
+  environment:
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED	: "1"
+    LEDGER_NAME: 
+      Ref: qldbPrivateLedger
+
+plugins:
+  - serverless-iam-roles-per-function
+  - serverless-cloudformation-sub-variables
+
+functions:
+
+  qldbPrivateTable:
+    name: qldb-private-table-${self:provider.stage}
+    handler: functions/createQldbTable.handler
+    memorySize: 256
+    timeout: 6
+    environment:
+      LICENCE_TABLE_NAME: Test
+
+  createLicence:
+    name: qldb-private-${self:provider.stage}
+    handler: functions/create-licence.handler
+    events:
+      - http:
+          path: /licences
+          method: post
+          cors: true
+    vpc:
+      securityGroupIds:
+        - !GetAtt QLDBSecurityGroup.GroupId
+      subnetIds:
+        - Ref: QLDBSubnetA
+        - Ref: QLDBSubnetB
+    iamRoleStatementsName: qldb-private-role-${self:provider.stage}
+    iamRoleStatements:
+      - Effect: Allow
+        Action: 
+        - qldb:SendCommand
+        Resource: arn:aws:qldb:#{AWS::Region}:#{AWS::AccountId}:ledger/qldb-private-${self:provider.stage}
+
+
+resources:
+  Resources:
+
+    qldbPrivateLedger:
+      Type: AWS::QLDB::Ledger
+      Properties:
+        Name: qldb-private-${self:provider.stage}
+        DeletionProtection: false
+        PermissionsMode: ALLOW_ALL
+        Tags:
+          - 
+            Key: name
+            Value: qldb-private
+
+#    qldbTable:
+ #     Type: Custom::qldbTable
+  #    DependsOn: qldbPrivateLedger
+   #   Properties:
+    #    ServiceToken: !GetAtt QldbPrivateTableLambdaFunction.Arn
+     #   Version: 1.1  #change this to force redeploy
+
+    QLDBVPC:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: "10.0.0.0/16"
+        EnableDnsSupport: true
+        EnableDnsHostnames: true
+        Tags:
+          - Key: Name
+            Value: qldb-private
+
+    QLDBSubnetA:
+      DependsOn: QLDBVPC
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId:
+          Ref: QLDBVPC
+        AvailabilityZone: ${self:provider.region}a
+        CidrBlock: "10.0.2.0/24"
+        Tags:
+          - Key: Name
+            Value: qldb-private-a
+
+    QLDBSubnetB:
+      DependsOn: QLDBVPC
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId:
+          Ref: QLDBVPC
+        AvailabilityZone: ${self:provider.region}b
+        CidrBlock: "10.0.3.0/24"
+        Tags:
+          - Key: Name
+            Value: qldb-private-b
+        
+    QLDBSecurityGroup:
+      DependsOn: QLDBVPC
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: SecurityGroup for QLDB Private
+        VpcId:
+          Ref: QLDBVPC
+        Tags:
+          - Key: Name
+            Value: qldb-private-sg
+
+    VpcEndpointSecurityGroup:
+      Type: 'AWS::EC2::SecurityGroup'
+      Properties:
+        VpcId: 
+          Ref: QLDBVPC
+        GroupDescription: 'Security group for VPC Endpoint'
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            SourceSecurityGroupId: !GetAtt QLDBSecurityGroup.GroupId
+
+    QLDBEndpoint:
+      Type: 'AWS::EC2::VPCEndpoint'
+      Properties:
+        PrivateDnsEnabled: True
+        SecurityGroupIds:
+          - !GetAtt VpcEndpointSecurityGroup.GroupId
+        ServiceName: !Sub 'com.amazonaws.${AWS::Region}.qldb.session'
+        SubnetIds:
+          - Ref: QLDBSubnetA
+          - Ref: QLDBSubnetB
+        VpcEndpointType: Interface
+        VpcId: !Ref QLDBVPC
+
+Outputs:
+  QLDBSecurityGroupId: 
+    Value: !Ref QLDBSecurityGroup
+  VpcEndpointSecurityGroupId: 
+    Value: !Ref VpcEndpointSecurityGroup  
+  SubnetIdA: 
+    Value: !Ref QLDBSubnetA
+  SubnetIdB: 
+    Value: !Ref QLDBSubnetB
