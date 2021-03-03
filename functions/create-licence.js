@@ -15,7 +15,7 @@ const handler = async (event) => {
   } = JSON.parse(event.body);
 
   try {
-    console.log('About to call out to create licence');
+    console.log('About to call out to create licence function');
     const response = await createLicence(firstName, lastName);
     return {
       statusCode: 201,

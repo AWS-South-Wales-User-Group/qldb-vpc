@@ -133,6 +133,14 @@ resources:
     QLDBEndpoint:
       Type: 'AWS::EC2::VPCEndpoint'
       Properties:
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal: '*'
+              Action: 
+                - 'qldb:SendCommand'
+              Resource: arn:aws:qldb:#{AWS::Region}:#{AWS::AccountId}:ledger/qldb-private-${self:provider.stage}
         PrivateDnsEnabled: True
         SecurityGroupIds:
           - !GetAtt VpcEndpointSecurityGroup.GroupId
