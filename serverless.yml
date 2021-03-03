@@ -16,7 +16,12 @@ provider:
   environment:
     AWS_NODEJS_CONNECTION_REUSE_ENABLED	: "1"
     LEDGER_NAME: 
-      Ref: qldbPrivateLedger
+      Ref: QLDBPrivateLedger  
+  iamRoleStatements:
+    - Effect: Allow
+      Action: 
+        - qldb:SendCommand
+      Resource: arn:aws:qldb:#{AWS::Region}:#{AWS::AccountId}:ledger/qldb-private-${self:provider.stage}
 
 plugins:
   - serverless-iam-roles-per-function
@@ -46,18 +51,11 @@ functions:
       subnetIds:
         - Ref: QLDBSubnetA
         - Ref: QLDBSubnetB
-    iamRoleStatementsName: qldb-private-role-${self:provider.stage}
-    iamRoleStatements:
-      - Effect: Allow
-        Action: 
-        - qldb:SendCommand
-        Resource: arn:aws:qldb:#{AWS::Region}:#{AWS::AccountId}:ledger/qldb-private-${self:provider.stage}
-
 
 resources:
   Resources:
 
-    qldbPrivateLedger:
+    QLDBPrivateLedger:
       Type: AWS::QLDB::Ledger
       Properties:
         Name: qldb-private-${self:provider.stage}
@@ -68,12 +66,12 @@ resources:
             Key: name
             Value: qldb-private
 
-#    qldbTable:
- #     Type: Custom::qldbTable
-  #    DependsOn: qldbPrivateLedger
-   #   Properties:
-    #    ServiceToken: !GetAtt QldbPrivateTableLambdaFunction.Arn
-     #   Version: 1.1  #change this to force redeploy
+    QLDBTable:
+      Type: Custom::qldbTable
+      DependsOn: QLDBPrivateLedger
+      Properties:
+        ServiceToken: !GetAtt QldbPrivateTableLambdaFunction.Arn
+        Version: 1.1  #change this to force redeploy
 
     QLDBVPC:
       Type: AWS::EC2::VPC
