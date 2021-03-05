@@ -124,6 +124,9 @@ resources:
         VpcId: 
           Ref: QLDBVPC
         GroupDescription: 'Security group for VPC Endpoint'
+        Tags:
+          - Key: Name
+            Value: qldb-vpce-sg
         SecurityGroupIngress:
           - IpProtocol: tcp
             FromPort: 443
