@@ -19,8 +19,10 @@ npm run sls -- deploy --stage {stage-name}
 
 When successfully deployed, the POST endpoint will be returned.
 
+```bash
 curl -X POST -H "Content-Type: application/json" \
     -d '{"firstName": "Matt", "lastName": "Lewis"}' \
     <POST-Endpoint>
+```
 
 This will return the docId of the new inserted document.
