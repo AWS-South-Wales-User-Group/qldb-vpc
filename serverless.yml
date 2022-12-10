@@ -155,16 +155,16 @@ resources:
           Version: '2012-10-17'
           Statement:
             - Effect: Allow
-              Principal: '*'
-#                AWS:
- #                 - arn:aws:iam::#{AWS::AccountId}:role/qldb-vpc-${self:provider.stage}-#{AWS::Region}-lambdaRole
+              Principal:
+                AWS:
+                  - arn:aws:iam::#{AWS::AccountId}:role/qldb-vpc-${self:provider.stage}-#{AWS::Region}-lambdaRole
               Action: 
                 - qldb:SendCommand
               Resource: arn:aws:qldb:#{AWS::Region}:#{AWS::AccountId}:ledger/qldb-private-${self:provider.stage}
             - Effect: Allow
-              Principal: '*'
-#                AWS:
- #                 - arn:aws:iam::#{AWS::AccountId}:role/qldb-vpc-${self:provider.stage}-#{AWS::Region}-lambdaRole
+              Principal:
+                AWS:
+                  - arn:aws:iam::#{AWS::AccountId}:role/qldb-vpc-${self:provider.stage}-#{AWS::Region}-lambdaRole
               Action: 
                 - qldb:PartiQLInsert
                 - qldb:PartiQLSelect

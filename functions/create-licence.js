@@ -5,7 +5,7 @@ const Log = require('@dazn/lambda-powertools-logger');
 const middy = require('@middy/core')
 const cors = require('@middy/http-cors')
 const { QldbDriver } = require('amazon-qldb-driver-nodejs');
-const qldbDriver = new QldbDriver('qldb-private-dev');
+const qldbDriver = new QldbDriver(process.env.LEDGER_NAME);
 
 
 const handler = async (event) => {
